@@ -1,0 +1,9 @@
+codecs
+requests
+urllib
+lxml
+PIL
+StringIO
+re
+json
+pycrypto

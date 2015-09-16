@@ -29,7 +29,10 @@ def getlinks(contents, pagenumber):
         weixinurl = WEIXIN_URL.format(id=secret, eqs=urllib.quote(eqs), ekv=level, n=i, t=int(time.time()*1000)) # 生成api url
         page = global_session.get(weixinurl)
         page.encoding = 'utf-8'
-        items = items + weixin.process_jsonp(page.text)
+        nitems = weixin.process_jsonp(page.text)
+        if len(nitems) <= 0:
+            break
+        items = items + nitems
         i = i + 1
     #print "Page numebr: " + str(pagenumber)
     #print "Total items: " + str(len(items))
