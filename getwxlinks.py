@@ -11,6 +11,7 @@ from lxml.builder import E
 #import tornado.httpclient
 from PIL import Image
 from StringIO import StringIO
+import tempfile
 
 global_user_agent = {'User-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11) AppleWebKit/601.1.50 (KHTML, like Gecko) Version/9.0 Safari/601.1.50'}
 
@@ -34,7 +35,7 @@ def getlinks(contents, pagenumber):
     #print "Total items: " + str(len(items))
     return items
 
-def saveimglocal(contents, docindex):
+def saveimglocal(contents, docindex, tempdir):
     imgs = contents.xpath('//img[@data-src]')
     i = 0
     for img in imgs:
@@ -43,7 +44,7 @@ def saveimglocal(contents, docindex):
             try:
                 r = global_session.get(imgurl)
                 f = Image.open(StringIO(r.content))
-                imgfilename = "./docs/" +  str(docindex) + str(i) + "." + f.format
+                imgfilename = tempdir + "/" +  str(docindex) + str(i) + "." + f.format
                 #print f.format
                 #print imgfilename
                 f.save(imgfilename)
@@ -62,6 +63,8 @@ def writelinks(items, wxname):
     indexbody = html.Element("body")
     title = E.H2(wxname)
     indexbody.append(title)
+
+    tempdir = tempfile.mkdtemp(dir=".")
     
     for i in items:
         print u"获取文章：" + i['title']
@@ -71,22 +74,24 @@ def writelinks(items, wxname):
         page.encoding = 'utf-8'
         tree = html.fromstring(page.text)
         contents = tree.xpath('//div[@id="page-content"]')[0]
-        saveimglocal(contents, count)
+        saveimglocal(contents, count, tempdir)
         ncontents = html.tostring(tree)
         #npage = weixin.process_content(ncontents)
-        f = codecs.open("./docs/" + str(count) + ".html", "w", "utf-8")
+        f = codecs.open(tempdir + "/" + str(count) + ".html", "w", "utf-8")
         f.write(ncontents)
         f.close()
-        doclocallink = "./docs/" + str(count) + ".html"
+        doclocallink = str(count) + ".html"
         indexlist = E.li(E.a(i['title'],href = doclocallink))
         indexbody.append(indexlist)
         count = count + 1
     print("Writing index html file...")
     indexroot.append(indexbody)
-    f = codecs.open("index.html","w","utf-8")
+    f = codecs.open(tempdir + "/index.html","w","utf-8")
     f.write(html.tostring(indexroot, pretty_print = True))
     f.close()
-
+    print("Finished. All documents stored in: " + tempdir)
+    print("Index file is: index.html")
+    
 def getweixinname(contents):
     tree = html.fromstring(contents)
     weixinnames = tree.xpath('//*[@id="weixinname"]')
@@ -101,14 +106,13 @@ def main():
         pagenumber = int(sys.argv[2])
     else:
         pagenumber = 1
+    print "Beginning to get documents..."
     page = global_session.get("http://weixin.sogou.com/gzh?openid=" + sys.argv[1])
     page.encoding = 'utf-8'
     weixinname = getweixinname(page.text)
     items = getlinks(page.text, pagenumber)
     print "Weixin documents: " + str(len(items))
     #print "First Link: " + items[0]['link']
-    if not os.path.exists("./docs"):
-        os.makedirs(blogdir)
     writelinks(items, weixinname)
     
     
