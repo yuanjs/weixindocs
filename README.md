@@ -5,3 +5,4 @@ python getwxlinks.py openid pagenumber
 pagenumber可以是1、2等，1表示下载第一页的10篇文章，2是20篇，以此类推。
 就可以下载最新的10篇文章到当前目录下的一个临时目录里。
 
+需要的类库都放在requirements.txt这个文件里，可以用pip直接安装
