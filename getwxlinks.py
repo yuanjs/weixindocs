@@ -13,7 +13,7 @@ from PIL import Image
 from StringIO import StringIO
 import tempfile
 
-global_user_agent = {'User-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11) AppleWebKit/601.1.50 (KHTML, like Gecko) Version/9.0 Safari/601.1.50'}
+#global_user_agent = {'User-agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11) AppleWebKit/601.1.50 (KHTML, like Gecko) Version/9.0 Safari/601.1.50'}
 
 WEIXIN_URL = 'http://weixin.sogou.com/gzhjs?cb=sogou.weixin.gzhcb&openid={id}&e\
 qs={eqs}&ekv={ekv}&page={n}&t={t}'
@@ -98,7 +98,10 @@ def writelinks(items, wxname):
 def getweixinname(contents):
     tree = html.fromstring(contents)
     weixinnames = tree.xpath('//*[@id="weixinname"]')
-    return weixinnames[0].text_content()
+    if len(weixinnames) > 0:
+        return weixinnames[0].text_content()
+    else:
+        return ""
 
 def main():
     if len(sys.argv) < 2:
@@ -114,6 +117,9 @@ def main():
     page.encoding = 'utf-8'
     weixinname = getweixinname(page.text)
     items = getlinks(page.text, pagenumber)
+    if len(items) == 0:
+        print("No any documents found. You may enter a wrong openid.")
+        exit()
     print "Weixin documents: " + str(len(items))
     #print "First Link: " + items[0]['link']
     writelinks(items, weixinname)
