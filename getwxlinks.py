@@ -47,7 +47,7 @@ def saveimglocal(contents, docindex, tempdir):
             try:
                 r = global_session.get(imgurl)
                 f = Image.open(StringIO(r.content))
-                imgfilename = tempdir + "/" +  str(docindex) + str(i) + "." + f.format
+                imgfilename = tempdir + "/d" +  str(docindex) + "p" + str(i) + "." + f.format
                 #print f.format
                 #print imgfilename
                 f.save(imgfilename)
